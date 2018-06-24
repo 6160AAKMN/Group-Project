@@ -1,0 +1,49 @@
+-- VIEW1;
+CREATE VIEW Physician_view as
+SELECT user.u_num as `User ID`, concat(user.First_name," ", user.Last_name) as `User Name`, user.street as `Street number and name`, 
+user.city, user.state, user.zip as `ZIP CODE`, user.phone,
+pet.pet_name as `Pet Name`, pet.special_needs as `Pet Special needs`, pet_size as `Pet Size`
+FROM user join pet on user.u_num=user_u_num
+GROUP BY user.u_num, concat(user.First_name," ", user.Last_name) 
+ORDER BY concat(user.First_name," ", user.Last_name) ;
+
+
+-- VIEW2
+CREATE VIEW Customer_view as
+SELECT concat(user.First_name," ", user.Last_name) as `Technician Name`, technician.Car 
+as `Has Car`, technician.preference as `Specialty`, avg(rating.rating_scale) as `Average Rating`
+FROM user join technician on user.u_num = technician.u_num
+left JOIN rating on rating.user_u_num = technician.u_num
+GROUP BY concat(user.First_name," ", user.Last_name) ;
+
+
+
+-- trigger assign new user id everytime a new user is  created
+
+DELIMITER |
+CREATE TRIGGER addunum
+AFTER INSERT ON user
+FOR EACH ROW 
+BEGIN
+	IF lastname is not null THEN
+    UPDATE u_num
+    SET u_num = MAX(u_num)+1;
+    END IF;
+END |
+
+
+
+-- Store procedure
+DELIMITER $$
+use `pawsclaws` $$
+CREATE PROCEDURE `addaddress` (IN u_num INT)
+BEGIN
+UPDATE address
+SET address= (select concat ('street', 'city', 'state', 'zip'))
+where u_num = u_num + 1;
+END;$$
+
+
+
+-- Index
+CREATE INDEX user_pet_index ON pet (pet_ID asc, user_u_num asc);
